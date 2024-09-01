@@ -62,7 +62,7 @@ Although it's handy to pass a model instance to the `turbo_stream()` function - 
 turbo_stream()
     ->target('comments')
     ->action('append')
-    ->view('comments._comment', ['comment' => $comment]);
+    ->view('comments.partials.comment', ['comment' => $comment]);
 ```
 
 There are also shorthand methods which may be used as well:
@@ -122,7 +122,7 @@ For both the `before` and `after` methods you need additional calls to specify t
 ```php
 turbo_stream()
     ->before($comment)
-    ->view('comments._flash_message', [
+    ->view('comments.partials.flash_message', [
         'message' => __('Comment created!'),
     ]);
 ```
@@ -141,6 +141,40 @@ It will build a `remove` Turbo Stream if the model was just deleted (or if it wa
 
 ```php
 return turbo_stream($comment, 'append');
+```
+
+## Turbo Stream & Morph
+
+Both the `update` and `replace` Turbo Stream actions can specify a `[method="morph"]`, so the action will use DOM morphing instead of the default renderer.
+
+```php
+turbo_stream()->replace(dom_id($post, 'comments'), view('comments.partials.comment', [
+    'comment' => $comment,
+]))->morph();
+```
+
+This would generate the following Turbo Stream HTML:
+
+```html
+<turbo-stream action="replace" target="comments_post_123" method="morph">
+    <template>...</template>
+</turbo-stream>
+```
+
+And here's the `update` action version:
+
+```php
+turbo_stream()->update(dom_id($post, 'comments'), view('comments.partials.comment', [
+    'comment' => $comment,
+]))->morph();
+```
+
+This would generate the following Turbo Stream HTML:
+
+```html
+<turbo-stream action="update" target="comments_post_123" method="morph">
+    <template>...</template>
+</turbo-stream>
 ```
 
 ## Target Multiple Elements
@@ -165,7 +199,7 @@ When creating Turbo Streams using the builders, you may also specify the CSS cla
 turbo_stream()
     ->targets('.comment')
     ->action('append')
-    ->view('comments._comment', ['comment' => $comment]);
+    ->view('comments.partials.comment', ['comment' => $comment]);
 ```
 
 ## Turbo Stream Macros
@@ -247,7 +281,7 @@ return turbo_stream([
         ->append($comment)
         ->target(dom_id($comment->post, 'comments')),
     turbo_stream()
-        ->update(dom_id($comment->post, 'comments_count'), view('posts._comments_count', [
+        ->update(dom_id($comment->post, 'comments_count'), view('posts.partials.comments_count', [
             'post' => $comment->post,
         ])),
 ]);
@@ -274,7 +308,7 @@ Here's an example of a more complex custom Turbo Stream view:
 
 <turbo-stream target="@domid($comment->post, 'comments')" action="append">
     <template>
-        @include('comments._comment', ['comment' => $comment])
+        @include('comments.partials.comment', ['comment' => $comment])
     </template>
 </turbo-stream>
 ```
@@ -285,7 +319,7 @@ Remember, these are Blade views, so you have the full power of Blade at your han
 @if (session()->has('status'))
 <turbo-stream target="notice" action="append">
     <template>
-        @include('layouts._flash')
+        @include('layouts.partials.flash')
     </template>
 </turbo-stream>
 @endif
@@ -297,7 +331,7 @@ Similar to the `<x-turbo::frame>` Blade component, there's also a `<x-turbo::str
 @include('layouts.turbo.flash_stream')
 
 <x-turbo::stream :target="[$comment->post, 'comments']" action="append">
-    @include('comments._comment', ['comment' => $comment])
+    @include('comments.partials.comment', ['comment' => $comment])
 </x-turbo::stream>
 ```
 
